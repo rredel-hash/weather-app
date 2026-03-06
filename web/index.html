@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<select id="stationSelect"></select>
+
+<h1 id="tempNow">--</h1>
+<div id="timestamp"></div>
+
+<div>
+ Tmin: <span id="tminToday"></span><br>
+ Tmax: <span id="tmaxToday"></span><br>
+ Precip: <span id="precipToday"></span>
+</div>
+
+<button onclick="openTempChart()">Temperatura</button>
+
+<div class="chart-container">
+<canvas id="tempChart"></canvas>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>
