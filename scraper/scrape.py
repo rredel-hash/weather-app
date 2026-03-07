@@ -2,8 +2,8 @@ import pandas as pd
 from datetime import datetime
 from pathlib import Path
 
-RAW_FILE = Path("data/data_raw.parquet")
 
+RAW_FILE = Path("docs/data/alguna_cosa.parquet")
 
 def get_station_data(station_id):
     # <<< REEMPLAZAR CON TU SCRAPER REAL >>>
@@ -56,3 +56,4 @@ import os
 os.makedirs("data", exist_ok=True)
 
 df.to_parquet(RAW_FILE, index=False)
+
