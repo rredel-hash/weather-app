@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded",init);
 
 async function init(){
 
- const res=await fetch("../data/stations.json");
+ const res=await fetch("data/stations.json");
  const stations=await res.json();
 
  const sel=document.getElementById("stationSelect");
@@ -29,7 +29,7 @@ async function changeStation(id){
 
  AppState.stationId=id;
 
- const r=await fetch(`../data/${id}/current.json`);
+ const r = await fetch(`data/${id}/current.json`);
  const d=await r.json();
 
  tempNow.textContent=d.temp_now;
@@ -65,3 +65,4 @@ async function openTempChart(){
    }
  );
 }
+
