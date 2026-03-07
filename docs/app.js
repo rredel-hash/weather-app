@@ -43,7 +43,7 @@ async function openTempChart(){
 
  if(!AppState.daily){
    const r=await fetch(
-     `../data/${AppState.stationId}/daily_5d.json`
+     `data/${AppState.stationId}/daily_5d.json`
    );
    AppState.daily=await r.json();
  }
@@ -65,4 +65,5 @@ async function openTempChart(){
    }
  );
 }
+
 
