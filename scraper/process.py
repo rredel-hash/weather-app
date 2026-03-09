@@ -48,7 +48,9 @@ for sid in stations:
     daily.loc[daily.index[-1],"complete"]=False
 
     with open(outdir/"daily_5d.json","w") as f:
+        daily["date"] = daily["date"].astype(str)
         json.dump({"days":daily.to_dict("records")},f)
+
 
 
 
