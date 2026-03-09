@@ -7,9 +7,8 @@ from pathlib import Path
 RAW_FILE = Path("docs/data/data_raw.parquet")
 
 import requests
-from bs4 import BeautifulSoup
-from datetime import datetime
 import re
+from datetime import datetime
 
 
 def get_station_data(station_id):
@@ -23,39 +22,68 @@ def get_station_data(station_id):
     r = requests.get(url, headers=headers, timeout=30)
     r.raise_for_status()
 
-    soup = BeautifulSoup(r.text, "html.parser")
+    html = r.text
 
-    # -------- TIMESTAMP REAL --------
-    # bloque tipo:
-    # <h1 class="text-danger">23:00 <small>04 Mar 2026</small></h1>
+    # -------- TIMESTAMP --------
 
-    ts_block = soup.find("h1", class_="text-danger")
+    timestamp = None
 
-    hora = ts_block.contents[0].strip()
-    fecha = ts_block.find("small").text.strip()
-
-    timestamp = datetime.strptime(
-        f"{fecha} {hora}",
-        "%d %b %Y %H:%M"
+    ts_match = re.search(
+        r'<h1[^>]*>\s*(\d{1,2}:\d{2})\s*<small>\s*([0-9]{1,2}\s+\w+\s+\d{4})',
+        html,
+        re.S
     )
 
+    if ts_match:
+        hora = ts_match.group(1)
+        fecha = ts_match.group(2)
+
+        timestamp = datetime.strptime(
+            f"{fecha} {hora}",
+            "%d %b %Y %H:%M"
+        )
+
     # -------- TEMPERATURA --------
+
     temp = None
-    m = re.search(r'(-?\d+\.?\d*)\s*°?C', r.text)
-    if m:
-        temp = float(m.group(1))
 
-    # -------- VIENTO --------
+    temp_match = re.search(
+        r'display-1">\s*([\-0-9\.]+)',
+        html
+    )
+
+    if temp_match:
+        temp = float(temp_match.group(1))
+
+    # -------- VIENTO INSTANTÁNEO --------
+
     wind = None
-    wind_match = re.search(r'Instantáneo.*?(\d+)', r.text)
-    if wind_match:
-        wind = int(wind_match.group(1))
 
-    # -------- PRECIP --------
-    precip = 0
-    rain_match = re.search(r'Hoy.*?(\d+\.?\d*)', r.text)
-    if rain_match:
-        precip = float(rain_match.group(1))
+    wind_match = re.search(
+        r'Instantáneo.*?(\d{1,3})\/(\d{1,3})',
+        html,
+        re.S
+    )
+
+    if wind_match:
+        wind = int(wind_match.group(2))
+
+    # -------- PRECIP (tabla 6h) --------
+
+    precip = 0.0
+
+    rain_rows = re.findall(
+        r'(\d{2}-\d{2}-\d{4}).*?(\d{2}:\d{2}).*?>\s*([0-9\.]+|s/p)\s*<',
+        html,
+        re.S
+    )
+
+    rain_rows = rain_rows[:10]
+
+    for _, _, mm in rain_rows:
+
+        if mm != "s/p":
+            precip += float(mm)
 
     return {
         "timestamp": timestamp,
@@ -106,6 +134,7 @@ import os
 os.makedirs("docs/data", exist_ok=True)
 
 df.to_parquet(RAW_FILE, index=False)
+
 
 
 
