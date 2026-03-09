@@ -11,16 +11,24 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import re
 
+
 def get_station_data(station_id):
 
-    url = f"https://tu_url_real_estacion/{station_id}"
+    url = f"https://climatologia.meteochile.gob.cl/application/diariob/visorDeDatosEma/{station_id}"
 
-    r = requests.get(url, timeout=30)
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    r = requests.get(url, headers=headers, timeout=30)
     r.raise_for_status()
 
     soup = BeautifulSoup(r.text, "html.parser")
 
     # -------- TIMESTAMP REAL --------
+    # bloque tipo:
+    # <h1 class="text-danger">23:00 <small>04 Mar 2026</small></h1>
+
     ts_block = soup.find("h1", class_="text-danger")
 
     hora = ts_block.contents[0].strip()
@@ -33,26 +41,21 @@ def get_station_data(station_id):
 
     # -------- TEMPERATURA --------
     temp = None
-    temp_match = re.search(r'(-?\d+\.?\d*)\s*°?C', r.text)
-    if temp_match:
-        temp = float(temp_match.group(1))
+    m = re.search(r'(-?\d+\.?\d*)\s*°?C', r.text)
+    if m:
+        temp = float(m.group(1))
 
     # -------- VIENTO --------
     wind = None
-    wind_row = soup.find(string=re.compile("Instantáneo"))
-    if wind_row:
-        row = wind_row.find_parent("tr")
-        wind_text = row.find_all("td")[1].text
-        wind = int(wind_text.split("/")[1])
+    wind_match = re.search(r'Instantáneo.*?(\d+)', r.text)
+    if wind_match:
+        wind = int(wind_match.group(1))
 
     # -------- PRECIP --------
     precip = 0
-    rain_row = soup.find(string=re.compile("Hoy"))
-    if rain_row:
-        row = rain_row.find_parent("tr")
-        val = row.find_all("td")[1].text.strip()
-        if val not in ["s/p", "."]:
-            precip = float(val)
+    rain_match = re.search(r'Hoy.*?(\d+\.?\d*)', r.text)
+    if rain_match:
+        precip = float(rain_match.group(1))
 
     return {
         "timestamp": timestamp,
@@ -103,6 +106,7 @@ import os
 os.makedirs("docs/data", exist_ok=True)
 
 df.to_parquet(RAW_FILE, index=False)
+
 
 
 
