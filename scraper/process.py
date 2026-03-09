@@ -17,9 +17,10 @@ for sid in stations:
 
     latest = sdf.sort_values("timestamp").iloc[-1]
 
-    outdir = Path(f"data/{sid}")
-    outdir.mkdir(exist_ok=True)
-
+   
+    outdir = Path("docs/data") / station_id
+    
+    outdir.mkdir(parents=True, exist_ok=True)
     current = {
         "temp_now": float(latest.temp),
         "timestamp": str(latest.timestamp),
@@ -48,4 +49,5 @@ for sid in stations:
 
     with open(outdir/"daily_5d.json","w") as f:
         json.dump({"days":daily.to_dict("records")},f)
+
 
