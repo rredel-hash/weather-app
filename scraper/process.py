@@ -2,8 +2,8 @@ import pandas as pd
 import json
 from pathlib import Path
 
-RAW = Path("data/data_raw.parquet")
 
+RAW = Path("docs/data/data_raw.parquet")
 df = pd.read_parquet(RAW)
 
 df["date"] = df.timestamp.dt.date
@@ -48,3 +48,4 @@ for sid in stations:
 
     with open(outdir/"daily_5d.json","w") as f:
         json.dump({"days":daily.to_dict("records")},f)
+
