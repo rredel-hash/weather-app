@@ -1,12 +1,13 @@
 name: Update Weather
-
 on:
   schedule:
     - cron: "15 * * * *"
-  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
-  run:
+  update:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,4 +29,5 @@ jobs:
           git add docs/data/
           git diff --cached --quiet || git commit -m "update"
           git push
+
 
