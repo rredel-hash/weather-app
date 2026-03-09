@@ -54,8 +54,9 @@ cutoff = pd.Timestamp.now() - pd.Timedelta(days=7)
 df = df[df.timestamp >= cutoff]
 
 import os
-os.makedirs("data", exist_ok=True)
+os.makedirs("docs/data", exist_ok=True)
 
 df.to_parquet(RAW_FILE, index=False)
+
 
 
