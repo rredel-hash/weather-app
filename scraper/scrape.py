@@ -1,8 +1,7 @@
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
-
-
+import numpy as np # Importar numpy para generar ángulos de viento aleatorios
 
 RAW_FILE = Path("docs/data/data_raw.parquet")
 
@@ -116,6 +115,12 @@ for sid in stations:
 
 new_df = pd.DataFrame(rows)
 
+# --- Lógica para agregar 'tipo_dato' y 'angulo_viento' ---
+# Se añade la columna 'tipo_dato' basada en si la precipitación es mayor que 0.
+new_df['tipo_dato'] = (new_df['precip'] > 0).astype(int)
+# Se añade la columna 'angulo_viento' con valores aleatorios entre 0 y 360.
+new_df['angulo_viento'] = np.random.randint(0, 361, size=len(new_df))
+
 if RAW_FILE.exists():
     df = pd.read_parquet(RAW_FILE)
     df = pd.concat([df, new_df])
@@ -134,9 +139,3 @@ import os
 os.makedirs("docs/data", exist_ok=True)
 
 df.to_parquet(RAW_FILE, index=False)
-
-
-
-
-
-
