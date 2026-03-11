@@ -1,13 +1,13 @@
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
-import numpy as np # Importar numpy para generar ángulos de viento aleatorios
+# import numpy as np # Removed as angle is directly scraped
 
 RAW_FILE = Path("docs/data/data_raw.parquet")
 
 import requests
 import re
-from datetime import datetime
+# from datetime import datetime # Already imported above
 
 
 def get_station_data(station_id):
@@ -28,7 +28,7 @@ def get_station_data(station_id):
     timestamp = None
 
     ts_match = re.search(
-        r'<h1[^>]*>\s*(\d{1,2}:\d{2})\s*<small>\s*([0-9]{1,2}\s+\w+\s+\d{4})',
+        r'<h1[^>]*>\s*(\\d{1,2}:\\d{2})\s*<small>\s*([0-9]{1,2}\s+\w+\s+\\d{4})',
         html,
         re.S
     )
@@ -47,7 +47,7 @@ def get_station_data(station_id):
     temp = None
 
     temp_match = re.search(
-        r'display-1">\s*([\-0-9\.]+)',
+        r'display-1">\s*([\\-0-9\\.]+)',
         html
     )
 
@@ -57,22 +57,24 @@ def get_station_data(station_id):
     # -------- VIENTO INSTANTÁNEO --------
 
     wind = None
+    angulo_viento = None # Initialize new variable for wind angle
 
     wind_match = re.search(
-        r'Instantáneo.*?(\d{1,3})\/(\d{1,3})',
+        r'Instantáneo.*?(\\d{1,3})\\/(\\d{1,3})',
         html,
         re.S
     )
 
     if wind_match:
-        wind = int(wind_match.group(2))
+        angulo_viento = int(wind_match.group(1)) # Extract angle
+        wind = int(wind_match.group(2)) # Extract wind speed
 
     # -------- PRECIP (tabla 6h) --------
 
     precip = 0.0
 
     rain_rows = re.findall(
-        r'(\d{2}-\d{2}-\d{4}).*?(\d{2}:\d{2}).*?>\s*([0-9\.]+|s/p)\s*<',
+        r'(\\d{2}-\\d{2}-\\d{4}).*?(\\d{2}:\\d{2}).*?>\\s*([0-9\\.]+|s/p)\\s*<',
         html,
         re.S
     )
@@ -88,7 +90,8 @@ def get_station_data(station_id):
         "timestamp": timestamp,
         "temp": temp,
         "wind": wind,
-        "precip": precip
+        "precip": precip,
+        "angulo_viento": angulo_viento # Add angle to the return dict
     }
 
 
@@ -110,16 +113,17 @@ for sid in stations:
         "timestamp": d["timestamp"],
         "temp": d["temp"],
         "wind": d["wind"],
-        "precip": d["precip"]
+        "precip": d["precip"],
+        "angulo_viento": d["angulo_viento"] # Populate from the returned dict
     })
 
 new_df = pd.DataFrame(rows)
 
-# --- Lógica para agregar 'tipo_dato' y 'angulo_viento' ---
+# --- Lógica para agregar 'tipo_dato' --- 
 # Se añade la columna 'tipo_dato' basada en si la precipitación es mayor que 0.
 new_df['tipo_dato'] = (new_df['precip'] > 0).astype(int)
-# Se añade la columna 'angulo_viento' con valores aleatorios entre 0 y 360.
-new_df['angulo_viento'] = np.random.randint(0, 361, size=len(new_df))
+# 'angulo_viento' is now directly scraped, so no need for random generation here.
+# new_df['angulo_viento'] = np.random.randint(0, 361, size=len(new_df)) # Removed
 
 if RAW_FILE.exists():
     df = pd.read_parquet(RAW_FILE)
