@@ -120,8 +120,15 @@ def get_station_data(station_id):
                     min_h4 = tds[0].find('h4')
                     if min_h4:
                         min_str_parts = min_h4.get_text(separator=' ', strip=True).split(' ')
-                        min_str = min_str_parts[0]
-                        temp_minima = float(min_str.replace(',', '.')) if min_str not in ('s/p', '--', '&nbsp;') else None
+                        min_str = min_str_parts[0] # Get only the number
+                        # Refined check for valid float conversion including '.' and empty strings
+                        temp_minima = None
+                        if min_str and min_str not in ('s/p', '--', '&nbsp;', '.'):
+                            try:
+                                temp_minima = float(min_str.replace(',', '.'))
+                            except ValueError:
+                                temp_minima = None
+                        
                         min_small = min_h4.find('small')
                         temp_minima_time_str = min_small.get_text(strip=True).replace(' Local', '') if min_small else None
 
@@ -135,8 +142,15 @@ def get_station_data(station_id):
                     max_h4 = tds[1].find('h4')
                     if max_h4:
                         max_str_parts = max_h4.get_text(separator=' ', strip=True).split(' ')
-                        max_str = max_str_parts[0]
-                        temp_maxima = float(max_str.replace(',', '.')) if max_str not in ('s/p', '--', '&nbsp;') else None
+                        max_str = max_str_parts[0] # Get only the number
+                        # Refined check for valid float conversion including '.' and empty strings
+                        temp_maxima = None
+                        if max_str and max_str not in ('s/p', '--', '&nbsp;', '.'):
+                            try:
+                                temp_maxima = float(max_str.replace(',', '.'))
+                            except ValueError:
+                                temp_maxima = None
+                        
                         max_small = max_h4.find('small')
                         temp_maxima_time_str = max_small.get_text(strip=True).replace(' Local', '') if max_small else None
 
